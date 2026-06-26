@@ -1,5 +1,6 @@
 """
 Coleta do Google Acadêmico — artigos de 2025 em diante
+Meta: ~181 resultados disponíveis para esses descritores
 Instalar: pip install requests beautifulsoup4 scholarly tqdm
 """
 
@@ -28,6 +29,9 @@ DELAY_PAG_MAX    = 40
 DELAY_LOTE_MIN   = 6
 DELAY_LOTE_MAX   = 12
 PAGINAS_POR_LOTE = 5
+
+# Quantas páginas vazias seguidas antes de desistir
+MAX_PAGINAS_VAZIAS = 5
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -159,24 +163,21 @@ def extrair_metadados(item) -> dict | None:
 
 
 # ──────────────────────────────────────────────────────────────
-# BUSCA POR PÁGINA — duas estratégias de URL
+# BUSCA POR PÁGINA
 # ──────────────────────────────────────────────────────────────
 def buscar_pagina(sessao: requests.Session, query: str,
-                  start: int, ano_inicio: int) -> tuple[list, bool]:
+                  start: int, ano_inicio: int) -> tuple[list, str]:
     """
-    Tenta duas formas de filtrar por ano no Scholar:
-    1. Parâmetros as_ylo + as_yhi
-    2. Parâmetro scisbd=1 (ordenar por data) sem filtro explícito,
-       descartando artigos anteriores ao ano_inicio no pós-processamento.
+    Retorna (artigos, status).
+    status: 'ok' | 'vazia' | 'captcha' | 'bloqueio' | 'erro'
     """
-    # Estratégia 1: filtro por intervalo de ano
     params = {
         "q":      query,
         "hl":     "pt",
         "start":  start,
         "as_sdt": "0,5",
         "as_ylo": ano_inicio,
-        "as_yhi": 2030,        # margem generosa para o futuro
+        "as_yhi": 2030,
     }
 
     try:
@@ -184,16 +185,16 @@ def buscar_pagina(sessao: requests.Session, query: str,
                           params=params, timeout=25)
     except requests.exceptions.RequestException as e:
         log.error(f"Erro de conexão: {e}")
-        return [], True
+        return [], "erro"
 
     if resp.status_code == 429:
         log.warning("⛔ 429 — bloqueio. Pausando 30 minutos...")
         time.sleep(30 * 60)
-        return [], True
+        return [], "bloqueio"
 
     if resp.status_code != 200:
         log.error(f"Status inesperado: {resp.status_code}")
-        return [], False
+        return [], "erro"
 
     soup = BeautifulSoup(resp.text, "html.parser")
 
@@ -210,48 +211,33 @@ def buscar_pagina(sessao: requests.Session, query: str,
             "   4. Rode o script novamente — retoma de onde parou\n" +
             "="*60
         )
-        return [], False
+        return [], "captcha"
 
     resultados = soup.find_all("div", class_="gs_r gs_or gs_scl")
 
-    # Se página vazia, tenta estratégia 2: sem filtro, filtra no pós
     if not resultados:
-        log.info("  Filtro por ano não retornou resultados — tentando sem filtro...")
-        params2 = {
-            "q":      query,
-            "hl":     "pt",
-            "start":  start,
-            "as_sdt": "0,5",
-            "scisbd": "1",     # ordenar por data (mais recentes primeiro)
-        }
-        try:
-            resp2 = sessao.get("https://scholar.google.com/scholar",
-                               params=params2, timeout=25)
-            soup2 = BeautifulSoup(resp2.text, "html.parser")
-            resultados = soup2.find_all("div", class_="gs_r gs_or gs_scl")
-        except Exception:
-            pass
-
-    if not resultados:
-        log.info("Página vazia — fim dos resultados.")
-        return [], False
+        # Verifica se é realmente fim ou só página sem resultados
+        sem_resultados = soup.find("div", id="gs_res_ccl_mid")
+        if sem_resultados and not sem_resultados.find_all("div"):
+            return [], "vazia"
+        return [], "vazia"
 
     artigos = []
     for item in resultados:
         a = extrair_metadados(item)
         if not a:
             continue
-        # Pós-filtro: descarta artigos com ano identificado < ano_inicio
+        # Descarta só se tiver ano identificado E for antigo
         if a["ano"] and int(a["ano"]) < ano_inicio:
             log.info(f"  Descartado (ano {a['ano']}): {a['titulo'][:60]}")
             continue
         artigos.append(a)
 
-    return artigos, True
+    return artigos, "ok"
 
 
 # ──────────────────────────────────────────────────────────────
-# FALLBACK: scholarly (com filtro de ano corrigido)
+# FALLBACK: scholarly
 # ──────────────────────────────────────────────────────────────
 def buscar_scholarly(query: str, num_resultados: int, ano_inicio: int) -> list:
     try:
@@ -262,7 +248,7 @@ def buscar_scholarly(query: str, num_resultados: int, ano_inicio: int) -> list:
 
     log.info(f"[scholarly] Buscando (máx {num_resultados}, ano >= {ano_inicio})...")
     artigos = []
-    tentativas_sem_resultado = 0
+    artigos_antigos = 0
 
     try:
         busca = sch.search_pubs(query)
@@ -271,17 +257,12 @@ def buscar_scholarly(query: str, num_resultados: int, ano_inicio: int) -> list:
                 break
             try:
                 bib = pub.get("bib", {})
+                ano_raw = str(bib.get("pub_year", "")).strip()
+                ano = ano_raw if ano_raw.isdigit() else ""
 
-                # Corrige o erro 'NA' — trata como string antes de converter
-                ano_raw = bib.get("pub_year", "")
-                ano = ""
-                if ano_raw and str(ano_raw).strip().isdigit():
-                    ano = str(ano_raw).strip()
-
-                # Filtra por ano (só descarta se tiver ano E for antigo)
                 if ano and int(ano) < ano_inicio:
-                    tentativas_sem_resultado += 1
-                    if tentativas_sem_resultado > 50:
+                    artigos_antigos += 1
+                    if artigos_antigos > 30:
                         log.info("[scholarly] Muitos artigos antigos — encerrando.")
                         break
                     continue
@@ -299,22 +280,20 @@ def buscar_scholarly(query: str, num_resultados: int, ano_inicio: int) -> list:
                     "origem":    "scholarly",
                 }
                 artigos.append(artigo)
-                tentativas_sem_resultado = 0
+                artigos_antigos = 0
                 log.info(f"  [scholarly] {len(artigos)}: {artigo['titulo'][:70]}")
                 time.sleep(random.uniform(5, 10))
 
             except Exception as e:
-                log.warning(f"  [scholarly] Erro no item: {e}")
-                continue
-
+                log.warning(f"  [scholarly] Erro: {e}")
     except Exception as e:
-        log.error(f"[scholarly] Erro na busca: {e}")
+        log.error(f"[scholarly] Erro: {e}")
 
     return artigos
 
 
 # ──────────────────────────────────────────────────────────────
-# BUSCA PRINCIPAL
+# BUSCA PRINCIPAL — mais persistente em páginas vazias
 # ──────────────────────────────────────────────────────────────
 def buscar_tudo(sessao: requests.Session, query: str,
                 meta: int, ano_inicio: int) -> list:
@@ -330,9 +309,10 @@ def buscar_tudo(sessao: requests.Session, query: str,
         log.info(f"▶ Retomando da página {inicio_pag + 1} "
                  f"({len(todos)} artigos já coletados)")
 
-    num_paginas     = (meta // 10) + 10
+    # Para 181 resultados o Scholar vai até ~18 páginas
+    num_paginas     = max((meta // 10) + 10, 25)
     paginas_lote    = 0
-    falhas_seguidas = 0
+    paginas_vazias  = 0   # contador de páginas vazias seguidas
 
     for pagina in range(inicio_pag, num_paginas):
         if len(todos) >= meta:
@@ -341,33 +321,40 @@ def buscar_tudo(sessao: requests.Session, query: str,
 
         start = pagina * 10
 
+        # Pausa entre lotes
         if paginas_lote > 0 and paginas_lote % PAGINAS_POR_LOTE == 0:
             minutos = random.uniform(DELAY_LOTE_MIN, DELAY_LOTE_MAX)
             log.info(f"\n⏸  Pausa de lote: {minutos:.1f} min...\n")
             time.sleep(minutos * 60)
             rotacionar_agente(sessao)
 
-        log.info(f"[Pág {pagina + 1}] start={start} | "
-                 f"coletados={len(todos)}/{meta} | filtro: >={ano_inicio}")
+        log.info(f"[Pág {pagina + 1}/{num_paginas}] start={start} | "
+                 f"coletados={len(todos)} | vazias seguidas={paginas_vazias}")
 
-        artigos, continuar = buscar_pagina(sessao, query, start, ano_inicio)
+        artigos, status = buscar_pagina(sessao, query, start, ano_inicio)
 
-        # Fallback scholarly se scraping falhar definitivamente
-        if not artigos and not continuar:
-            log.warning("Scraping bloqueado — ativando scholarly...")
-            faltam = meta - len(todos)
-            artigos_fb = buscar_scholarly(query, faltam, ano_inicio)
-            for a in artigos_fb:
-                chave = a["titulo"].lower()[:60]
-                if chave not in ids_vistos:
-                    todos.append(a)
-                    ids_vistos.add(chave)
-            _append_csv(artigos_fb, primeiro=(not META_FILE.exists()))
-            salvar_progresso(pagina, len(todos), list(ids_vistos))
-            break
+        if status == "captcha":
+            break  # para e avisa
 
-        if not continuar:
-            break
+        if status in ("bloqueio", "erro"):
+            # Espera e tenta de novo na próxima iteração
+            time.sleep(10)
+            continue
+
+        if status == "vazia":
+            paginas_vazias += 1
+            log.info(f"  Página vazia ({paginas_vazias}/{MAX_PAGINAS_VAZIAS})")
+            if paginas_vazias >= MAX_PAGINAS_VAZIAS:
+                log.info(f"  {MAX_PAGINAS_VAZIAS} páginas vazias seguidas — fim dos resultados.")
+                break
+            # Aguarda antes de tentar a próxima
+            time.sleep(random.uniform(DELAY_PAG_MIN, DELAY_PAG_MAX))
+            salvar_progresso(pagina + 1, len(todos), list(ids_vistos))
+            paginas_lote += 1
+            continue
+
+        # Página com resultados — reseta contador de vazias
+        paginas_vazias = 0
 
         novos = []
         for a in artigos:
@@ -381,13 +368,9 @@ def buscar_tudo(sessao: requests.Session, query: str,
             primeiro = not META_FILE.exists() and pagina == inicio_pag
             _append_csv(novos, primeiro=primeiro)
             salvar_progresso(pagina + 1, len(todos), list(ids_vistos))
-            falhas_seguidas = 0
             log.info(f"  +{len(novos)} novos | Total: {len(todos)}")
         else:
-            falhas_seguidas += 1
-            if falhas_seguidas >= 3:
-                log.warning("3 páginas sem novos resultados. Encerrando.")
-                break
+            log.info(f"  Nenhum novo (duplicatas)")
 
         paginas_lote += 1
         espera = random.uniform(DELAY_PAG_MIN, DELAY_PAG_MAX)
@@ -472,10 +455,10 @@ def baixar_todos_pdfs(sessao: requests.Session, artigos: list) -> list:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-q", "--query", required=True)
-    parser.add_argument("-n", "--numero", type=int, default=458)
+    parser.add_argument("-n", "--numero", type=int, default=200,
+                        help="Meta de artigos (padrão: 200, Scholar tem ~181)")
     parser.add_argument("--proxy")
     parser.add_argument("--sem-pdf", action="store_true")
-    parser.add_argument("--so-scholarly", action="store_true")
     parser.add_argument("--resetar", action="store_true")
     args = parser.parse_args()
 
@@ -488,16 +471,12 @@ def main():
     log.info("=" * 60)
     log.info(f"Query  : {args.query}")
     log.info(f"Filtro : ano >= {ANO_INICIO}")
-    log.info(f"Meta   : {args.numero} artigos")
+    log.info(f"Meta   : {args.numero} artigos (Scholar tem ~181 disponíveis)")
+    log.info(f"Tolerância páginas vazias: {MAX_PAGINAS_VAZIAS} seguidas")
     log.info("=" * 60)
 
-    sessao = criar_sessao(proxy=args.proxy)
-
-    if args.so_scholarly:
-        artigos = buscar_scholarly(args.query, args.numero, ANO_INICIO)
-        _append_csv(artigos, primeiro=True)
-    else:
-        artigos = buscar_tudo(sessao, args.query, args.numero, ANO_INICIO)
+    sessao  = criar_sessao(proxy=args.proxy)
+    artigos = buscar_tudo(sessao, args.query, args.numero, ANO_INICIO)
 
     if not args.sem_pdf:
         artigos = baixar_todos_pdfs(sessao, artigos)
