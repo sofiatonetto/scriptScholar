@@ -3,3 +3,7 @@
 
 python3 script.py -q "("Geotecnologias" OR "Sistemas de Informação Geográfica" OR "Geoprocessamento” OR "Sensoriamento Remoto") AND ("Educação Profissional" OR "Ensino Técnico" OR “Ensino Médio Integrado” OR “Escola Técnica”)" -n 458
 bash: erro de sintaxe próximo ao token inesperado `)'
+
+
+
+python3 scholar_2025.py -q '("Geotecnologias" OR "Sistemas de Informação Geográfica" OR "Geoprocessamento" OR "Sensoriamento Remoto") AND ("Educação Profissional" OR "Ensino Técnico" OR "Ensino Médio Integrado" OR "Escola Técnica")' -n 458
