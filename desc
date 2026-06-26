@@ -44,3 +44,130 @@ PDFs: 0it [00:00, ?it/s]
 
    Distribuição por ano:
 ==================================================
+
+
+
+ python3 scriptt2.py -q '("Geotecnologias" OR "Sistemas de Informação Geográfica" OR "Geoprocessamento" OR "Sensoriamento Remoto") AND ("Educação Profissional" OR "Ensino Técnico" OR "Ensino Médio Integrado" OR "Escola Técnica")' -n 458
+2026-06-26 08:42:51,826 [INFO] ============================================================
+2026-06-26 08:42:51,826 [INFO] Query  : ("Geotecnologias" OR "Sistemas de Informação Geográfica" OR "Geoprocessamento" OR "Sensoriamento Remoto") AND ("Educação Profissional" OR "Ensino Técnico" OR "Ensino Médio Integrado" OR "Escola Técnica")
+2026-06-26 08:42:51,826 [INFO] Filtro : ano >= 2025
+2026-06-26 08:42:51,826 [INFO] Meta   : 458 artigos
+2026-06-26 08:42:51,826 [INFO] ============================================================
+2026-06-26 08:42:51,826 [INFO] [Pág 1] start=0 | coletados=0/458 | filtro: >=2025
+2026-06-26 08:42:53,041 [INFO]   +10 novos | Total: 10
+2026-06-26 08:42:53,041 [INFO]   Próxima página em 29s...
+2026-06-26 08:43:21,828 [INFO] [Pág 2] start=10 | coletados=10/458 | filtro: >=2025
+2026-06-26 08:43:22,214 [INFO]   +10 novos | Total: 20
+2026-06-26 08:43:22,214 [INFO]   Próxima página em 38s...
+2026-06-26 08:43:59,819 [INFO] [Pág 3] start=20 | coletados=20/458 | filtro: >=2025
+2026-06-26 08:44:00,250 [INFO]   +9 novos | Total: 29
+2026-06-26 08:44:00,250 [INFO]   Próxima página em 37s...
+2026-06-26 08:44:37,127 [INFO] [Pág 4] start=30 | coletados=29/458 | filtro: >=2025
+2026-06-26 08:44:37,801 [INFO]   +6 novos | Total: 35
+2026-06-26 08:44:37,801 [INFO]   Próxima página em 40s...
+2026-06-26 08:45:17,753 [INFO] [Pág 5] start=40 | coletados=35/458 | filtro: >=2025
+2026-06-26 08:45:18,306 [INFO]   +10 novos | Total: 45
+2026-06-26 08:45:18,307 [INFO]   Próxima página em 30s...
+2026-06-26 08:45:48,007 [INFO] 
+⏸  Pausa de lote: 10.6 min...
+
+2026-06-26 08:56:24,897 [INFO] [Pág 6] start=50 | coletados=45/458 | filtro: >=2025
+2026-06-26 08:56:26,320 [INFO]   +4 novos | Total: 49
+2026-06-26 08:56:26,320 [INFO]   Próxima página em 31s...
+2026-06-26 08:56:57,824 [INFO] [Pág 7] start=60 | coletados=49/458 | filtro: >=2025
+2026-06-26 08:57:00,180 [INFO]   +10 novos | Total: 59
+2026-06-26 08:57:00,180 [INFO]   Próxima página em 23s...
+2026-06-26 08:57:22,825 [INFO] [Pág 8] start=70 | coletados=59/458 | filtro: >=2025
+2026-06-26 08:57:23,148 [INFO]   Filtro por ano não retornou resultados — tentando sem filtro...
+2026-06-26 08:57:23,751 [INFO] Página vazia — fim dos resultados.
+2026-06-26 08:57:23,751 [WARNING] Scraping bloqueado — ativando scholarly...
+2026-06-26 08:57:23,938 [INFO] [scholarly] Buscando (máx 399, ano >= 2025)...
+2026-06-26 08:57:23,938 [INFO] Getting https://scholar.google.com/scholar?hl=en&q=%28%22Geotecnologias%22%20OR%20%22Sistemas%20de%20Informa%C3%A7%C3%A3o%20Geogr%C3%A1fica%22%20OR%20%22Geoprocessamento%22%20OR%20%22Sensoriamento%20Remoto%22%29%20AND%20%28%22Educa%C3%A7%C3%A3o%20Profissional%22%20OR%20%22Ensino%20T%C3%A9cnico%22%20OR%20%22Ensino%20M%C3%A9dio%20Integrado%22%20OR%20%22Escola%20T%C3%A9cnica%22%29&as_vis=0&as_sdt=0,33
+2026-06-26 08:57:26,482 [INFO] HTTP Request: GET https://scholar.google.com/scholar?hl=en&q=%28%22Geotecnologias%22%20OR%20%22Sistemas%20de%20Informa%C3%A7%C3%A3o%20Geogr%C3%A1fica%22%20OR%20%22Geoprocessamento%22%20OR%20%22Sensoriamento%20Remoto%22%29%20AND%20%28%22Educa%C3%A7%C3%A3o%20Profissional%22%20OR%20%22Ensino%20T%C3%A9cnico%22%20OR%20%22Ensino%20M%C3%A9dio%20Integrado%22%20OR%20%22Escola%20T%C3%A9cnica%22%29&as_vis=0&as_sdt=0,33 "HTTP/1.1 200 OK"
+2026-06-26 08:57:26,833 [INFO]   [scholarly] 1: O USO DE GEOTECNOLOGIAS DE SIG E SENSORIAMENTO REMOTO POR ALUNOS DO EN
+2026-06-26 08:57:35,279 [INFO]   [scholarly] 2: Geotecnologias e metodologias ativas no ensino de legislação ambiental
+2026-06-26 08:57:45,065 [INFO]   [scholarly] 3: O Sensoriamento Remoto como Ferramenta Didática na Educação Profission
+2026-06-26 08:57:52,992 [INFO] Getting https://scholar.google.com/scholar?start=10&q=(%22Geotecnologias%22+OR+%22Sistemas+de+Informa%C3%A7%C3%A3o+Geogr%C3%A1fica%22+OR+%22Geoprocessamento%22+OR+%22Sensoriamento+Remoto%22)+AND+(%22Educa%C3%A7%C3%A3o+Profissional%22+OR+%22Ensino+T%C3%A9cnico%22+OR+%22Ensino+M%C3%A9dio+Integrado%22+OR+%22Escola+T%C3%A9cnica%22)&hl=en&as_sdt=0,33
+2026-06-26 08:57:56,096 [INFO] HTTP Request: GET https://scholar.google.com/scholar?start=10&q=(%22Geotecnologias%22+OR+%22Sistemas+de+Informa%C3%A7%C3%A3o+Geogr%C3%A1fica%22+OR+%22Geoprocessamento%22+OR+%22Sensoriamento+Remoto%22)+AND+(%22Educa%C3%A7%C3%A3o+Profissional%22+OR+%22Ensino+T%C3%A9cnico%22+OR+%22Ensino+M%C3%A9dio+Integrado%22+OR+%22Escola+T%C3%A9cnica%22)&hl=en&as_sdt=0,33 "HTTP/1.1 200 OK"
+2026-06-26 08:57:56,249 [INFO]   [scholarly] 4: Geotecnologias e metodologias ativas no ensino de legislação ambiental
+2026-06-26 08:58:05,419 [INFO]   [scholarly] 5: O Sensoriamento Remoto como Ferramenta Didática na Educação Profission
+2026-06-26 08:58:12,590 [INFO]   [scholarly] 6: Uma proposta de integração de ciências e matemática com disciplinas té
+2026-06-26 08:58:17,823 [INFO]   [scholarly] 7: ANÁLISE E INTERPRETAÇÃO DE MAPAS: UMA PERSPECTIVA PARA O ENSINO TÉCNIC
+2026-06-26 08:58:26,020 [INFO]   [scholarly] 8: GLEISE REGINA BERTOLAZI DOS SANTOS
+2026-06-26 08:58:33,342 [INFO]   [scholarly] 9: Guia Didático: O uso das novas tecnologias aplicadas ao ensino da geog
+2026-06-26 08:58:41,048 [INFO]   [scholarly] 10: RELATO DE EXPERIÊNCIA:: a prática docente no PIBID em turmas do ensino
+2026-06-26 08:58:48,892 [INFO] Getting https://scholar.google.com/scholar?start=20&q=(%22Geotecnologias%22+OR+%22Sistemas+de+Informa%C3%A7%C3%A3o+Geogr%C3%A1fica%22+OR+%22Geoprocessamento%22+OR+%22Sensoriamento+Remoto%22)+AND+(%22Educa%C3%A7%C3%A3o+Profissional%22+OR+%22Ensino+T%C3%A9cnico%22+OR+%22Ensino+M%C3%A9dio+Integrado%22+OR+%22Escola+T%C3%A9cnica%22)&hl=en&as_sdt=0,33
+2026-06-26 08:58:51,383 [INFO] HTTP Request: GET https://scholar.google.com/scholar?start=20&q=(%22Geotecnologias%22+OR+%22Sistemas+de+Informa%C3%A7%C3%A3o+Geogr%C3%A1fica%22+OR+%22Geoprocessamento%22+OR+%22Sensoriamento+Remoto%22)+AND+(%22Educa%C3%A7%C3%A3o+Profissional%22+OR+%22Ensino+T%C3%A9cnico%22+OR+%22Ensino+M%C3%A9dio+Integrado%22+OR+%22Escola+T%C3%A9cnica%22)&hl=en&as_sdt=0,33 "HTTP/1.1 200 OK"
+2026-06-26 08:58:51,776 [INFO]   [scholarly] 11: INTERIORIZAÇÃO DO ENSINO TÉCNICO E SUPERIOR NA REGIÃO-FRONTEIRA DO ALT
+2026-06-26 08:58:57,166 [INFO]   [scholarly] 12: EDITAL Nº 103/2019
+2026-06-26 08:59:06,103 [INFO]   [scholarly] 13: A geografia em poesia popular no ensino médio integrado ao ensino técn
+2026-06-26 08:59:13,538 [INFO]   [scholarly] 14: O SENSORIAMENTO REMOTO COMO RECURSO DIDÁTICO NO ENSINO DA GEOGRAFIA
+2026-06-26 08:59:18,681 [INFO]   [scholarly] 15: Desastres em municípios da Rede Federal de Educação Profissional, Cien
+2026-06-26 08:59:27,496 [INFO] Getting https://scholar.google.com/scholar?start=30&q=(%22Geotecnologias%22+OR+%22Sistemas+de+Informa%C3%A7%C3%A3o+Geogr%C3%A1fica%22+OR+%22Geoprocessamento%22+OR+%22Sensoriamento+Remoto%22)+AND+(%22Educa%C3%A7%C3%A3o+Profissional%22+OR+%22Ensino+T%C3%A9cnico%22+OR+%22Ensino+M%C3%A9dio+Integrado%22+OR+%22Escola+T%C3%A9cnica%22)&hl=en&as_sdt=0,33
+2026-06-26 08:59:29,646 [INFO] HTTP Request: GET https://scholar.google.com/scholar?start=30&q=(%22Geotecnologias%22+OR+%22Sistemas+de+Informa%C3%A7%C3%A3o+Geogr%C3%A1fica%22+OR+%22Geoprocessamento%22+OR+%22Sensoriamento+Remoto%22)+AND+(%22Educa%C3%A7%C3%A3o+Profissional%22+OR+%22Ensino+T%C3%A9cnico%22+OR+%22Ensino+M%C3%A9dio+Integrado%22+OR+%22Escola+T%C3%A9cnica%22)&hl=en&as_sdt=0,33 "HTTP/1.1 200 OK"
+2026-06-26 08:59:29,778 [INFO] Downloads de PDF (56 disponíveis)...
+PDFs:   0%|                                             | 0/70 [00:00<?, ?it/s]2026-06-26 08:59:32,234 [INFO]   ✔ 0003_Por que precisamos discutir as geotecnologias na escola_ da visão instrumental p.pdf
+PDFs:   4%|█▌                                   | 3/70 [00:04<01:50,  1.65s/it]2026-06-26 08:59:38,856 [INFO]   ✔ 0004_INTERIORIZAÇÃO DO ENSINO TÉCNICO E SUPERIOR NA REGIÃO-FRONTEIRA DO ALTO OESTE PO.pdf
+PDFs:   6%|██                                   | 4/70 [00:13<04:15,  3.87s/it]2026-06-26 08:59:44,684 [INFO]   ✔ 0005_Desastres em municípios da Rede Federal de Educação Profissional , Científica e.pdf
+PDFs:   7%|██▋                                  | 5/70 [00:20<05:11,  4.79s/it]2026-06-26 09:00:21,986 [INFO]   ✔ 0006_A Importância dos satélites imageadores no cotidiano dos estudantes_ aprendendo.pdf
+PDFs:   9%|███▏                                 | 6/70 [00:54<14:48, 13.88s/it]2026-06-26 09:00:28,532 [INFO]   ✔ 0007_GEOGRAFIA E GEOTECNOLOGIAS NA EDUCAÇÃO BÁSICA_ REDUÇÃO E MITIGAÇÃO DE DESASTRES.pdf
+PDFs:  10%|███▋                                 | 7/70 [01:03<12:58, 12.36s/it]2026-06-26 09:00:33,690 [INFO]   ✔ 0008_A Contribuição do Campus Rio Grande do IFRS para a Educação Profissional e Tecno.pdf
+PDFs:  11%|████▏                                | 8/70 [01:08<10:23, 10.06s/it]2026-06-26 09:00:38,277 [INFO]   ✔ 0009_GEOTECNOLOGIAS NO ENSINO DE GEOGRAFIA_ TURISMO E CURIOSIDADE DIGITAL.pdf
+PDFs:  13%|████▊                                | 9/70 [01:11<08:03,  7.93s/it]2026-06-26 09:00:42,558 [INFO]   ✔ 0010_Análise crítica da relação entre a oferta de educação profissional e tecnológica.pdf
+PDFs:  16%|█████▋                              | 11/70 [01:22<06:32,  6.64s/it]2026-06-26 09:00:53,045 [INFO]   ✔ 0012_DINÂMICA DO USO E OCUPAÇÃO DO SOLO EM MINEIROS-GO_ IMPLICAÇÕES AMBIENTAIS DETECT.pdf
+PDFs:  19%|██████▋                             | 13/70 [02:04<14:38, 15.40s/it]2026-06-26 09:01:45,322 [INFO]   ✔ 0015_VISIBILIDADE DO TEMA SOLO NOS PROJETOS PEDAGÓGICOS DOS CURSOS (PPC) NO COMPONENT.pdf
+PDFs:  21%|███████▋                            | 15/70 [02:18<10:25, 11.38s/it]2026-06-26 09:01:48,922 [INFO]   ✔ 0016_SENSORIAMENTO REMOTO ORBITAL E ANÁLISE DE TENDÊNCIA NAS MUDANÇAS DA COBERTURA E.pdf
+PDFs:  23%|████████▏                           | 16/70 [02:22<08:42,  9.67s/it]2026-06-26 09:01:53,052 [INFO]   ✔ 0017_O USO DOS RECURSOS EDUCACIONAIS DIGITAIS (RED'S) NA EDUCAÇÃO PROFISSIONAL E TECN.pdf
+PDFs:  24%|████████▋                           | 17/70 [02:26<07:12,  8.15s/it]2026-06-26 09:01:58,125 [INFO]   ✔ 0018_ANÁLISE DO USO DO SOLO NA ÁREA DE PRESERVAÇÃO PERMANENTE NO RESERVATÓRIO ARMANDO.pdf
+PDFs:  27%|█████████▊                          | 19/70 [02:37<06:03,  7.12s/it]2026-06-26 09:02:10,133 [INFO]   ✔ 0021_INFLUÊNCIA DAS UNIDADES DE CONSERVAÇÃO DA NATUREZA NO CÁLCULO DO ÍNDICE DE ÁREA.pdf
+PDFs:  30%|██████████▊                         | 21/70 [02:44<04:21,  5.34s/it]2026-06-26 09:02:14,632 [INFO]   ✔ 0022_INFLUÊNCIA DA SOCIALIZAÇÃO NA APRENDIZAGEM PRÁTICA EM DISCIPLINAS TÉCNICAS.pdf
+PDFs:  31%|███████████▎                        | 22/70 [02:49<04:12,  5.26s/it]2026-06-26 09:02:23,951 [INFO]   ✔ 0023_MAPEAMENTO AÉREO COM DRONE E PRODUÇÃO DE ORTOMOSAICO.pdf
+PDFs:  34%|████████████▎                       | 24/70 [03:02<04:10,  5.45s/it]2026-06-26 09:02:32,698 [INFO]   ✔ 0025_EDUCAÇÃO PROFISSIONAL E TECNOLÓGICA NO PIAUÍ_ FUNDAMENTOS E PERSPECTIVAS DA INOV.pdf
+PDFs:  36%|████████████▊                       | 25/70 [03:05<03:35,  4.78s/it]2026-06-26 09:02:36,520 [INFO]   ✔ 0026_Ensino de Geografia e cognição espacial_ perspectivas didáticas para educadores.pdf
+PDFs:  37%|█████████████▎                      | 26/70 [03:09<03:23,  4.62s/it]2026-06-26 09:02:41,479 [INFO]   ✔ 0027_Desafios e possibilidades didática do uso das tecnologias digitais no ensino da.pdf
+PDFs:  39%|█████████████▉                      | 27/70 [03:13<03:17,  4.59s/it]2026-06-26 09:02:59,575 [INFO]   ✔ 0028_CARACTERIZAÇÃO MORFOMÉTRICA DA BACIA HIDROGRÁFICA DO RIO SIRINHAÉM, EM PERNAMBUC.pdf
+PDFs:  40%|██████████████▍                     | 28/70 [03:31<05:57,  8.51s/it]2026-06-26 09:03:04,246 [INFO]   ✔ 0029_GUIA PARA TURISMO ECOPEDAGÓGICO EM IPAMERI-GO.pdf
+PDFs:  41%|██████████████▉                     | 29/70 [03:38<05:30,  8.07s/it]2026-06-26 09:03:08,811 [INFO]   ✔ 0030_Tecnologias digitais e geografia escolar_ saberes docentes produzidos durante o.pdf
+PDFs:  43%|███████████████▍                    | 30/70 [03:42<04:32,  6.81s/it]2026-06-26 09:03:15,424 [INFO]   ✔ 0032_Governança e políticas públicas para as mudanças do clima no Rio Grande do Norte.pdf
+PDFs:  46%|████████████████▍                   | 32/70 [03:50<03:28,  5.50s/it]2026-06-26 09:03:22,577 [INFO]   ✔ 0034_Estabelecimento de um zoneamento climático para o município de vila velha com ba.pdf
+PDFs:  49%|█████████████████▍                  | 34/70 [03:54<02:31,  4.21s/it]2026-06-26 09:03:27,442 [INFO]   ✔ 0035_ANÁLISE DE INDICADORES GEOAMBIENTAIS DE SUSTENTABILIDADE NA AMAZONIA PARAENSE, B.pdf
+PDFs:  50%|██████████████████                  | 35/70 [03:59<02:30,  4.31s/it]2026-06-26 09:03:30,585 [INFO]   ✔ 0036_Educação ambiental e sustentabilidade em uma abordagem STEAM no contexto do ensi.pdf
+PDFs:  51%|██████████████████▌                 | 36/70 [04:03<02:24,  4.26s/it]2026-06-26 09:03:34,379 [INFO]   ✔ 0037_MAPA DA INTERDISCIPLINARIDADE_ METODOLOGIAS ATIVAS NO ENSINO DE HISTÓRIA.pdf
+PDFs:  53%|███████████████████                 | 37/70 [04:09<02:34,  4.69s/it]2026-06-26 09:03:47,176 [INFO]   ✔ 0038_INTERIORIZAÇÃO E REDES TERRITORIAIS DO ENSINO SUPERIOR PÚBLICO NO RIO GRANDE DO.pdf
+PDFs:  54%|███████████████████▌                | 38/70 [04:20<03:19,  6.23s/it]2026-06-26 09:03:50,436 [INFO]   ✔ 0039_METODOLOGIAS ATIVAS E FERRAMENTAS TECNOLOGIAS DE ENSINO DE LÓGICA DE PROGRAMAÇÃO.pdf
+PDFs:  56%|████████████████████                | 39/70 [04:25<03:03,  5.93s/it]2026-06-26 09:03:57,138 [INFO]   ✔ 0040_DESIGUALDADE URBANA E SEGURANÇA PÚBLICA_ ANÁLISE DAS CONDIÇÕES SOCIOAMBIENTAIS R.pdf
+PDFs:  57%|████████████████████▌               | 40/70 [04:29<02:46,  5.54s/it]2026-06-26 09:04:00,199 [INFO]   ✔ 0041_A formação técnica em agropecuária no IFMG_ os casos dos campus “Bambuí” e “São.pdf
+PDFs:  59%|█████████████████████               | 41/70 [04:32<02:16,  4.70s/it]2026-06-26 09:04:04,075 [INFO]   ✔ 0042_Análise sazonal das frações da irradiação solar fotossintenticamente ativa globa.pdf
+PDFs:  60%|█████████████████████▌              | 42/70 [04:37<02:14,  4.79s/it]2026-06-26 09:04:09,510 [INFO]   ✔ 0043_Expansão dos cursos superiores de Geografia a distância no território brasileiro.pdf
+PDFs:  61%|██████████████████████              | 43/70 [04:43<02:15,  5.02s/it]2026-06-26 09:04:13,771 [INFO]   ✔ 0044_RESOLUCAO Nº89_2025_CAMEN_IFSULDEMINAS.pdf
+PDFs:  64%|███████████████████████▏            | 45/70 [04:55<02:21,  5.65s/it]2026-06-26 09:04:27,037 [INFO]   ✔ 0046_ALTERAÇÕES DAS CONDIÇÕES AMBIENTAIS DO TRECHO 2 DA BACIA HIDROGRÁFICA DO RIO CÓR.pdf
+PDFs:  69%|████████████████████████▋           | 48/70 [05:07<01:36,  4.39s/it]2026-06-26 09:04:38,422 [INFO]   ✔ 0049_Inteligência artificial no ensino de Geografia_ uma revisão sistemática sobre ca.pdf
+PDFs:  70%|█████████████████████████▏          | 49/70 [05:12<01:33,  4.44s/it]2026-06-26 09:04:44,443 [INFO]   ✔ 0050_Geotecnologia aplicada no ensino de geografia.pdf
+PDFs:  71%|█████████████████████████▋          | 50/70 [05:20<01:50,  5.50s/it]2026-06-26 09:04:54,444 [INFO]   ✔ 0051_Ecotech Roots.pdf
+PDFs:  73%|██████████████████████████▏         | 51/70 [05:27<01:53,  5.95s/it]2026-06-26 09:04:59,021 [INFO]   ✔ 0054_Empresários Egressos do CEFET-MT e o Perfil de suas Empresas.pdf
+PDFs:  77%|███████████████████████████▊        | 54/70 [05:33<01:00,  3.80s/it]2026-06-26 09:05:03,966 [INFO]   ✔ 0055_EDUCAÇÃO PARA A DIVERSIDADE_ REFLEXÕES SOBRE ACOLHIMENTO LGBTQIA+ EM UMA ESCOLA.pdf
+PDFs:  79%|████████████████████████████▎       | 55/70 [05:36<00:55,  3.67s/it]2026-06-26 09:05:19,141 [INFO]   ✔ 0056_Gestão e Cadastro de Equipamentos em Espaços Escolares com Recurso a Ferramentas.pdf
+PDFs:  80%|████████████████████████████▊       | 56/70 [05:53<01:33,  6.66s/it]2026-06-26 09:05:25,332 [INFO]   ✔ 0057_A GEOGRAFIA NO NOVO ENSINO MÉDIO PAULISTA_ REFORMAS CURRICULARES, FLEXIBILIZAÇÃO.pdf
+PDFs:  81%|█████████████████████████████▎      | 57/70 [06:00<01:26,  6.64s/it]2026-06-26 09:05:35,228 [INFO]   ✔ 0058_Avaliação da qualidade do ar interior em ambiente laboratorial durante a produçã.pdf
+PDFs:  83%|█████████████████████████████▊      | 58/70 [06:10<01:31,  7.65s/it]2026-06-26 09:05:42,968 [INFO]   ✔ 0059_Diretrizes para o cultivo de comunidades de prática nos institutos federais_ apr.pdf
+PDFs:  84%|██████████████████████████████▎     | 59/70 [06:16<01:17,  7.05s/it]2026-06-26 09:05:47,091 [INFO]   ✔ 0060_O USO DE GEOTECNOLOGIAS DE SIG E SENSORIAMENTO REMOTO POR ALUNOS DO ENSINO MÉDIO.pdf
+PDFs:  86%|██████████████████████████████▊     | 60/70 [06:21<01:04,  6.49s/it]2026-06-26 09:05:52,730 [INFO]   ✔ 0064_ANÁLISE E INTERPRETAÇÃO DE MAPAS_ UMA PERSPECTIVA PARA O ENSINO TÉCNICO NA ÁREA.pdf
+PDFs:  93%|█████████████████████████████████▍  | 65/70 [06:30<00:16,  3.38s/it]2026-06-26 09:06:02,692 [INFO]   ✔ 0066_Guia Didático_ O uso das novas tecnologias aplicadas ao ensino da geografia cart.pdf
+PDFs:  94%|█████████████████████████████████▉  | 66/70 [06:36<00:15,  3.94s/it]2026-06-26 09:06:06,677 [INFO]   ✔ 0068_EDITAL Nº 103_2019.pdf
+PDFs:  97%|██████████████████████████████████▉ | 68/70 [06:39<00:05,  3.00s/it]2026-06-26 09:06:10,185 [INFO]   ✔ 0069_A geografia em poesia popular no ensino médio integrado ao ensino técnico profis.pdf
+PDFs: 100%|████████████████████████████████████| 70/70 [06:43<00:00,  5.77s/it]
+2026-06-26 09:06:13,559 [INFO] PDFs baixados: 49
+2026-06-26 09:06:13,560 [INFO] CSV final: resultados_2025/metadados.csv (70 artigos)
+
+==================================================
+✅ Concluído!
+   Filtro            : artigos >= 2025
+   Artigos coletados : 70
+   PDFs baixados     : 49
+   Pasta de saída    : /home/lifa/resultados_2025
+
+   Distribuição por ano:
+   └─ sem ano: 54
+   └─ 2026: 5
+   └─ 2025: 11
+==================================================
