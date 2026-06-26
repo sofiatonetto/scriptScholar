@@ -7,3 +7,40 @@ bash: erro de sintaxe próximo ao token inesperado `)'
 <br>
 
 python3 scholar_2025.py -q '("Geotecnologias" OR "Sistemas de Informação Geográfica" OR "Geoprocessamento" OR "Sensoriamento Remoto") AND ("Educação Profissional" OR "Ensino Técnico" OR "Ensino Médio Integrado" OR "Escola Técnica")' -n 458
+
+
+
+ python3 scriptt2.py -q '("Geotecnologias" OR "Sistemas de Informação Geográfica" OR "Geoprocessamento" OR "Sensoriamento Remoto") AND ("Educação Profissional" OR "Ensino Técnico" OR "Ensino Médio Integrado" OR "Escola Técnica")' -n 458
+2026-06-26 08:38:46,614 [INFO] ============================================================
+2026-06-26 08:38:46,614 [INFO] Query      : ("Geotecnologias" OR "Sistemas de Informação Geográfica" OR "Geoprocessamento" OR "Sensoriamento Remoto") AND ("Educação Profissional" OR "Ensino Técnico" OR "Ensino Médio Integrado" OR "Escola Técnica")
+2026-06-26 08:38:46,614 [INFO] Filtro ano : >= 2025
+2026-06-26 08:38:46,614 [INFO] Meta       : 458 artigos
+2026-06-26 08:38:46,614 [INFO] Modo       : scraping + fallback scholarly
+2026-06-26 08:38:46,614 [INFO] ============================================================
+2026-06-26 08:38:46,615 [INFO] [Pág 1] start=0 | coletados=0/458 | filtro: >=2025
+2026-06-26 08:38:48,118 [INFO] Página vazia — fim dos resultados.
+2026-06-26 08:38:48,118 [WARNING] Scraping bloqueado — ativando scholarly...
+2026-06-26 08:38:48,357 [INFO] [scholarly] Buscando '("Geotecnologias" OR "Sistemas de Informação Geográfica" OR "Geoprocessamento" OR "Sensoriamento Remoto") AND ("Educação Profissional" OR "Ensino Técnico" OR "Ensino Médio Integrado" OR "Escola Técnica")' (máx 458)...
+2026-06-26 08:38:48,357 [INFO] Getting https://scholar.google.com/scholar?hl=en&q=%28%22Geotecnologias%22%20OR%20%22Sistemas%20de%20Informa%C3%A7%C3%A3o%20Geogr%C3%A1fica%22%20OR%20%22Geoprocessamento%22%20OR%20%22Sensoriamento%20Remoto%22%29%20AND%20%28%22Educa%C3%A7%C3%A3o%20Profissional%22%20OR%20%22Ensino%20T%C3%A9cnico%22%20OR%20%22Ensino%20M%C3%A9dio%20Integrado%22%20OR%20%22Escola%20T%C3%A9cnica%22%29&as_vis=0&as_sdt=0,33
+2026-06-26 08:38:50,261 [INFO] HTTP Request: GET https://scholar.google.com/scholar?hl=en&q=%28%22Geotecnologias%22%20OR%20%22Sistemas%20de%20Informa%C3%A7%C3%A3o%20Geogr%C3%A1fica%22%20OR%20%22Geoprocessamento%22%20OR%20%22Sensoriamento%20Remoto%22%29%20AND%20%28%22Educa%C3%A7%C3%A3o%20Profissional%22%20OR%20%22Ensino%20T%C3%A9cnico%22%20OR%20%22Ensino%20M%C3%A9dio%20Integrado%22%20OR%20%22Escola%20T%C3%A9cnica%22%29&as_vis=0&as_sdt=0,33 "HTTP/1.1 200 OK"
+2026-06-26 08:38:50,423 [WARNING]   [scholarly] Erro: invalid literal for int() with base 10: 'NA'
+2026-06-26 08:38:50,424 [WARNING]   [scholarly] Erro: invalid literal for int() with base 10: 'NA'
+2026-06-26 08:38:50,424 [WARNING]   [scholarly] Erro: invalid literal for int() with base 10: 'NA'
+2026-06-26 08:38:50,427 [INFO] Getting https://scholar.google.com/scholar?start=10&q=(%22Geotecnologias%22+OR+%22Sistemas+de+Informa%C3%A7%C3%A3o+Geogr%C3%A1fica%22+OR+%22Geoprocessamento%22+OR+%22Sensoriamento+Remoto%22)+AND+(%22Educa%C3%A7%C3%A3o+Profissional%22+OR+%22Ensino+T%C3%A9cnico%22+OR+%22Ensino+M%C3%A9dio+Integrado%22+OR+%22Escola+T%C3%A9cnica%22)&hl=en&as_sdt=0,33
+2026-06-26 08:38:52,457 [INFO] HTTP Request: GET https://scholar.google.com/scholar?start=10&q=(%22Geotecnologias%22+OR+%22Sistemas+de+Informa%C3%A7%C3%A3o+Geogr%C3%A1fica%22+OR+%22Geoprocessamento%22+OR+%22Sensoriamento+Remoto%22)+AND+(%22Educa%C3%A7%C3%A3o+Profissional%22+OR+%22Ensino+T%C3%A9cnico%22+OR+%22Ensino+M%C3%A9dio+Integrado%22+OR+%22Escola+T%C3%A9cnica%22)&hl=en&as_sdt=0,33 "HTTP/1.1 200 OK"
+2026-06-26 08:38:52,887 [INFO] scholarly adicionou 0 artigos
+2026-06-26 08:38:52,887 [INFO] Iniciando downloads (0 com link de PDF)...
+PDFs: 0it [00:00, ?it/s]
+2026-06-26 08:38:52,901 [INFO] PDFs baixados: 0
+2026-06-26 08:38:52,901 [INFO] CSV final salvo: resultados_2025/metadados.csv (0 artigos)
+2026-06-26 08:38:52,901 [INFO] JSON salvo: resultados_2025/metadados.json
+
+==================================================
+✅ Concluído!
+   Filtro aplicado   : artigos >= 2025
+   Artigos coletados : 0
+   PDFs baixados     : 0
+   Pasta de saída    : /home/lifa/resultados_2025
+
+   Distribuição por ano:
+==================================================
