@@ -1,12 +1,9 @@
 """
 Coleta do Google Acadêmico — artigos de 2025 em diante
-Modo: scraping cauteloso + fallback scholarly
-Saída: metadados (CSV + JSON) + PDFs disponíveis
-
 Instalar: pip install requests beautifulsoup4 scholarly tqdm
 """
 
-import os, time, random, csv, json, re, logging, argparse
+import time, random, csv, json, re, logging, argparse
 from pathlib import Path
 from datetime import datetime
 
@@ -24,11 +21,11 @@ JSON_FILE   = OUTPUT_DIR / "metadados.json"
 PROGRESSO   = OUTPUT_DIR / "progresso.json"
 LOG_FILE    = OUTPUT_DIR / "scraper.log"
 
-ANO_INICIO  = 2025   # filtro de ano
+ANO_INICIO  = 2025
 
 DELAY_PAG_MIN    = 20
 DELAY_PAG_MAX    = 40
-DELAY_LOTE_MIN   = 6    # minutos
+DELAY_LOTE_MIN   = 6
 DELAY_LOTE_MAX   = 12
 PAGINAS_POR_LOTE = 5
 
@@ -162,20 +159,24 @@ def extrair_metadados(item) -> dict | None:
 
 
 # ──────────────────────────────────────────────────────────────
-# BUSCA POR PÁGINA
+# BUSCA POR PÁGINA — duas estratégias de URL
 # ──────────────────────────────────────────────────────────────
 def buscar_pagina(sessao: requests.Session, query: str,
                   start: int, ano_inicio: int) -> tuple[list, bool]:
     """
-    Usa os parâmetros as_ylo/as_yhi do Scholar para filtrar por ano.
-    Retorna (artigos, continuar).
+    Tenta duas formas de filtrar por ano no Scholar:
+    1. Parâmetros as_ylo + as_yhi
+    2. Parâmetro scisbd=1 (ordenar por data) sem filtro explícito,
+       descartando artigos anteriores ao ano_inicio no pós-processamento.
     """
+    # Estratégia 1: filtro por intervalo de ano
     params = {
         "q":      query,
         "hl":     "pt",
         "start":  start,
         "as_sdt": "0,5",
-        "as_ylo": ano_inicio,   # ← filtro: ano >= 2025
+        "as_ylo": ano_inicio,
+        "as_yhi": 2030,        # margem generosa para o futuro
     }
 
     try:
@@ -196,12 +197,10 @@ def buscar_pagina(sessao: requests.Session, query: str,
 
     soup = BeautifulSoup(resp.text, "html.parser")
 
-    captcha = (
-        "please show you're not a robot" in resp.text.lower()
-        or soup.find("form", {"id": "gs_captcha_f"}) is not None
-        or "g-recaptcha" in resp.text
-    )
-    if captcha:
+    # Detecção de CAPTCHA
+    if ("please show you're not a robot" in resp.text.lower()
+            or soup.find("form", {"id": "gs_captcha_f"})
+            or "g-recaptcha" in resp.text):
         log.error(
             "\n" + "="*60 +
             "\n🛑 CAPTCHA DETECTADO!\n"
@@ -214,16 +213,45 @@ def buscar_pagina(sessao: requests.Session, query: str,
         return [], False
 
     resultados = soup.find_all("div", class_="gs_r gs_or gs_scl")
+
+    # Se página vazia, tenta estratégia 2: sem filtro, filtra no pós
+    if not resultados:
+        log.info("  Filtro por ano não retornou resultados — tentando sem filtro...")
+        params2 = {
+            "q":      query,
+            "hl":     "pt",
+            "start":  start,
+            "as_sdt": "0,5",
+            "scisbd": "1",     # ordenar por data (mais recentes primeiro)
+        }
+        try:
+            resp2 = sessao.get("https://scholar.google.com/scholar",
+                               params=params2, timeout=25)
+            soup2 = BeautifulSoup(resp2.text, "html.parser")
+            resultados = soup2.find_all("div", class_="gs_r gs_or gs_scl")
+        except Exception:
+            pass
+
     if not resultados:
         log.info("Página vazia — fim dos resultados.")
         return [], False
 
-    artigos = [a for item in resultados if (a := extrair_metadados(item))]
+    artigos = []
+    for item in resultados:
+        a = extrair_metadados(item)
+        if not a:
+            continue
+        # Pós-filtro: descarta artigos com ano identificado < ano_inicio
+        if a["ano"] and int(a["ano"]) < ano_inicio:
+            log.info(f"  Descartado (ano {a['ano']}): {a['titulo'][:60]}")
+            continue
+        artigos.append(a)
+
     return artigos, True
 
 
 # ──────────────────────────────────────────────────────────────
-# FALLBACK: scholarly
+# FALLBACK: scholarly (com filtro de ano corrigido)
 # ──────────────────────────────────────────────────────────────
 def buscar_scholarly(query: str, num_resultados: int, ano_inicio: int) -> list:
     try:
@@ -232,19 +260,32 @@ def buscar_scholarly(query: str, num_resultados: int, ano_inicio: int) -> list:
         log.error("scholarly não instalada: pip install scholarly")
         return []
 
-    log.info(f"[scholarly] Buscando '{query}' (máx {num_resultados})...")
+    log.info(f"[scholarly] Buscando (máx {num_resultados}, ano >= {ano_inicio})...")
     artigos = []
+    tentativas_sem_resultado = 0
+
     try:
         busca = sch.search_pubs(query)
-        for i, pub in enumerate(busca):
+        for pub in busca:
             if len(artigos) >= num_resultados:
                 break
             try:
                 bib = pub.get("bib", {})
-                ano = str(bib.get("pub_year", ""))
-                # Filtra por ano
+
+                # Corrige o erro 'NA' — trata como string antes de converter
+                ano_raw = bib.get("pub_year", "")
+                ano = ""
+                if ano_raw and str(ano_raw).strip().isdigit():
+                    ano = str(ano_raw).strip()
+
+                # Filtra por ano (só descarta se tiver ano E for antigo)
                 if ano and int(ano) < ano_inicio:
+                    tentativas_sem_resultado += 1
+                    if tentativas_sem_resultado > 50:
+                        log.info("[scholarly] Muitos artigos antigos — encerrando.")
+                        break
                     continue
+
                 artigo = {
                     "titulo":    bib.get("title", ""),
                     "autores":   ", ".join(bib.get("author", [])),
@@ -258,10 +299,14 @@ def buscar_scholarly(query: str, num_resultados: int, ano_inicio: int) -> list:
                     "origem":    "scholarly",
                 }
                 artigos.append(artigo)
+                tentativas_sem_resultado = 0
                 log.info(f"  [scholarly] {len(artigos)}: {artigo['titulo'][:70]}")
                 time.sleep(random.uniform(5, 10))
+
             except Exception as e:
-                log.warning(f"  [scholarly] Erro: {e}")
+                log.warning(f"  [scholarly] Erro no item: {e}")
+                continue
+
     except Exception as e:
         log.error(f"[scholarly] Erro na busca: {e}")
 
@@ -285,7 +330,7 @@ def buscar_tudo(sessao: requests.Session, query: str,
         log.info(f"▶ Retomando da página {inicio_pag + 1} "
                  f"({len(todos)} artigos já coletados)")
 
-    num_paginas     = (meta // 10) + 5
+    num_paginas     = (meta // 10) + 10
     paginas_lote    = 0
     falhas_seguidas = 0
 
@@ -296,7 +341,6 @@ def buscar_tudo(sessao: requests.Session, query: str,
 
         start = pagina * 10
 
-        # Pausa entre lotes
         if paginas_lote > 0 and paginas_lote % PAGINAS_POR_LOTE == 0:
             minutos = random.uniform(DELAY_LOTE_MIN, DELAY_LOTE_MAX)
             log.info(f"\n⏸  Pausa de lote: {minutos:.1f} min...\n")
@@ -308,7 +352,7 @@ def buscar_tudo(sessao: requests.Session, query: str,
 
         artigos, continuar = buscar_pagina(sessao, query, start, ano_inicio)
 
-        # Fallback scholarly se scraping falhar
+        # Fallback scholarly se scraping falhar definitivamente
         if not artigos and not continuar:
             log.warning("Scraping bloqueado — ativando scholarly...")
             faltam = meta - len(todos)
@@ -320,7 +364,6 @@ def buscar_tudo(sessao: requests.Session, query: str,
                     ids_vistos.add(chave)
             _append_csv(artigos_fb, primeiro=(not META_FILE.exists()))
             salvar_progresso(pagina, len(todos), list(ids_vistos))
-            log.info(f"scholarly adicionou {len(artigos_fb)} artigos")
             break
 
         if not continuar:
@@ -355,7 +398,7 @@ def buscar_tudo(sessao: requests.Session, query: str,
 
 
 # ──────────────────────────────────────────────────────────────
-# CSV INCREMENTAL
+# CSV
 # ──────────────────────────────────────────────────────────────
 def _append_csv(artigos: list, primeiro: bool = False):
     if not artigos:
@@ -366,6 +409,18 @@ def _append_csv(artigos: list, primeiro: bool = False):
         if primeiro:
             writer.writeheader()
         writer.writerows(artigos)
+
+def salvar_csv_final(artigos: list):
+    ordenados = sorted(artigos, key=lambda a: int(a.get("ano") or 0), reverse=True)
+    with open(META_FILE, "w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.DictWriter(f, fieldnames=CAMPOS, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(ordenados)
+    log.info(f"CSV final: {META_FILE} ({len(ordenados)} artigos)")
+
+def salvar_json(artigos: list):
+    with open(JSON_FILE, "w", encoding="utf-8") as f:
+        json.dump(artigos, f, ensure_ascii=False, indent=2)
 
 
 # ──────────────────────────────────────────────────────────────
@@ -392,7 +447,7 @@ def baixar_pdf(sessao: requests.Session, url: str, destino: Path) -> bool:
 
 def baixar_todos_pdfs(sessao: requests.Session, artigos: list) -> list:
     com_pdf = sum(1 for a in artigos if a.get("pdf_url"))
-    log.info(f"Iniciando downloads ({com_pdf} com link de PDF)...")
+    log.info(f"Downloads de PDF ({com_pdf} disponíveis)...")
     salvos = 0
     for idx, artigo in enumerate(tqdm(artigos, desc="PDFs"), 1):
         if not artigo.get("pdf_url"):
@@ -412,60 +467,28 @@ def baixar_todos_pdfs(sessao: requests.Session, artigos: list) -> list:
 
 
 # ──────────────────────────────────────────────────────────────
-# CSV FINAL ORGANIZADO
-# ──────────────────────────────────────────────────────────────
-def salvar_csv_final(artigos: list):
-    """Salva CSV final ordenado por ano (mais recente primeiro)."""
-    import csv as csv_mod
-    ordenados = sorted(
-        artigos,
-        key=lambda a: int(a.get("ano") or 0),
-        reverse=True
-    )
-    with open(META_FILE, "w", newline="", encoding="utf-8-sig") as f:
-        writer = csv_mod.DictWriter(f, fieldnames=CAMPOS, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(ordenados)
-    log.info(f"CSV final salvo: {META_FILE} ({len(ordenados)} artigos)")
-
-def salvar_json(artigos: list):
-    with open(JSON_FILE, "w", encoding="utf-8") as f:
-        json.dump(artigos, f, ensure_ascii=False, indent=2)
-    log.info(f"JSON salvo: {JSON_FILE}")
-
-
-# ──────────────────────────────────────────────────────────────
 # CLI
 # ──────────────────────────────────────────────────────────────
 def main():
-    parser = argparse.ArgumentParser(
-        description=f"Coleta Scholar — artigos de {ANO_INICIO} em diante"
-    )
-    parser.add_argument("-q", "--query", required=True,
-                        help="Descritores de busca")
-    parser.add_argument("-n", "--numero", type=int, default=458,
-                        help="Nº máximo de artigos (padrão: 458)")
-    parser.add_argument("--proxy",
-                        help="Proxy: http://user:pass@host:porta")
-    parser.add_argument("--sem-pdf", action="store_true",
-                        help="Pula download de PDFs")
-    parser.add_argument("--so-scholarly", action="store_true",
-                        help="Usa só scholarly (sem scraping direto)")
-    parser.add_argument("--resetar", action="store_true",
-                        help="Começa do zero")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-q", "--query", required=True)
+    parser.add_argument("-n", "--numero", type=int, default=458)
+    parser.add_argument("--proxy")
+    parser.add_argument("--sem-pdf", action="store_true")
+    parser.add_argument("--so-scholarly", action="store_true")
+    parser.add_argument("--resetar", action="store_true")
     args = parser.parse_args()
 
-    if args.resetar and PROGRESSO.exists():
-        PROGRESSO.unlink()
-        if META_FILE.exists():
-            META_FILE.unlink()
-        log.info("Progresso e CSV resetados.")
+    if args.resetar:
+        for f in [PROGRESSO, META_FILE]:
+            if f.exists():
+                f.unlink()
+        log.info("Resetado.")
 
     log.info("=" * 60)
-    log.info(f"Query      : {args.query}")
-    log.info(f"Filtro ano : >= {ANO_INICIO}")
-    log.info(f"Meta       : {args.numero} artigos")
-    log.info(f"Modo       : {'só scholarly' if args.so_scholarly else 'scraping + fallback scholarly'}")
+    log.info(f"Query  : {args.query}")
+    log.info(f"Filtro : ano >= {ANO_INICIO}")
+    log.info(f"Meta   : {args.numero} artigos")
     log.info("=" * 60)
 
     sessao = criar_sessao(proxy=args.proxy)
@@ -491,7 +514,7 @@ def main():
 
     print(f"\n{'='*50}")
     print(f"✅ Concluído!")
-    print(f"   Filtro aplicado   : artigos >= {ANO_INICIO}")
+    print(f"   Filtro            : artigos >= {ANO_INICIO}")
     print(f"   Artigos coletados : {len(artigos)}")
     print(f"   PDFs baixados     : {pdfs_ok}")
     print(f"   Pasta de saída    : {OUTPUT_DIR.resolve()}")
@@ -499,7 +522,6 @@ def main():
     for ano in sorted(por_ano.keys(), reverse=True):
         print(f"   └─ {ano}: {por_ano[ano]}")
     print(f"{'='*50}")
-
 
 if __name__ == "__main__":
     main()
