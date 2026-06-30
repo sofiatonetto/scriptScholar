@@ -167,6 +167,7 @@ def buscar_pagina(sessao, query, start) -> tuple[list, str]:
         "hl":     "pt",
         "start":  start,
         "as_sdt": "0,5",
+        "as_yhi": 2025,   # só artigos publicados até 2025
     }
     try:
         resp = sessao.get("https://scholar.google.com/scholar",
