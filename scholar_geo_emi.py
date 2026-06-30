@@ -1,7 +1,7 @@
 """
 Coleta do Google Acadêmico — "geotecnologias" e "ensino médio integrado"
-Meta: ~111 resultados disponíveis
-Instalar: pip install requests beautifulsoup4 tqdm
+Saída: Excel (.xlsx) com células amarelas para artigos sem PDF
+Instalar: pip install requests beautifulsoup4 tqdm openpyxl
 """
 
 import time, random, csv, json, re, logging, argparse
@@ -17,7 +17,7 @@ from tqdm import tqdm
 # ──────────────────────────────────────────────────────────────
 OUTPUT_DIR  = Path("resultados_geo_emi")
 PDF_DIR     = OUTPUT_DIR / "pdfs"
-META_FILE   = OUTPUT_DIR / "metadados.csv"
+XLSX_FILE   = OUTPUT_DIR / "metadados.xlsx"
 JSON_FILE   = OUTPUT_DIR / "metadados.json"
 PROGRESSO   = OUTPUT_DIR / "progresso.json"
 LOG_FILE    = OUTPUT_DIR / "scraper.log"
@@ -38,7 +38,7 @@ USER_AGENTS = [
 ]
 
 CAMPOS = ["titulo", "autores", "fonte", "ano", "citacoes",
-          "resumo", "link", "pdf_url", "pdf_local"]
+          "resumo", "link", "pdf_url", "pdf_local", "acesso_manual"]
 
 # ──────────────────────────────────────────────────────────────
 # SETUP
@@ -96,7 +96,7 @@ def rotacionar_agente(sessao):
 
 
 # ──────────────────────────────────────────────────────────────
-# EXTRAÇÃO — aceita todos os artigos, com ou sem ano
+# EXTRAÇÃO
 # ──────────────────────────────────────────────────────────────
 def extrair_metadados(item) -> dict | None:
     try:
@@ -143,15 +143,16 @@ def extrair_metadados(item) -> dict | None:
                 break
 
         return {
-            "titulo":    titulo,
-            "autores":   autores,
-            "fonte":     fonte,
-            "ano":       ano,
-            "citacoes":  citacoes,
-            "resumo":    resumo,
-            "link":      link_artigo,
-            "pdf_url":   pdf_url,
-            "pdf_local": "",
+            "titulo":        titulo,
+            "autores":       autores,
+            "fonte":         fonte,
+            "ano":           ano,
+            "citacoes":      citacoes,
+            "resumo":        resumo,
+            "link":          link_artigo,
+            "pdf_url":       pdf_url,
+            "pdf_local":     "",
+            "acesso_manual": "",
         }
     except Exception as e:
         log.warning(f"Erro ao extrair: {e}")
@@ -167,7 +168,7 @@ def buscar_pagina(sessao, query, start) -> tuple[list, str]:
         "hl":     "pt",
         "start":  start,
         "as_sdt": "0,5",
-        "as_yhi": 2025,   # só artigos publicados até 2025
+        "as_yhi": 2025,
     }
     try:
         resp = sessao.get("https://scholar.google.com/scholar",
@@ -218,9 +219,10 @@ def buscar_tudo(sessao, query, meta) -> list:
     ids_vistos  = set(progresso.get("ids_vistos", []))
     todos       = []
 
-    if META_FILE.exists() and inicio_pag > 0:
-        with open(META_FILE, encoding="utf-8-sig") as f:
-            todos = list(csv.DictReader(f))
+    if PROGRESSO.exists() and inicio_pag > 0:
+        if JSON_FILE.exists():
+            with open(JSON_FILE, encoding="utf-8") as f:
+                todos = json.load(f)
         log.info(f"▶ Retomando da pág {inicio_pag + 1} ({len(todos)} já coletados)")
 
     num_paginas  = max((meta // 10) + 5, 15)
@@ -240,7 +242,7 @@ def buscar_tudo(sessao, query, meta) -> list:
             time.sleep(minutos * 60)
             rotacionar_agente(sessao)
 
-        log.info(f"[Pág {pagina+1}/{num_paginas}] coletados={len(todos)} | vazias={vazias}/{MAX_VAZIAS}")
+        log.info(f"[Pág {pagina+1}/{num_paginas}] coletados={len(todos)}/{meta} | vazias={vazias}")
 
         artigos, status = buscar_pagina(sessao, query, start)
 
@@ -262,6 +264,8 @@ def buscar_tudo(sessao, query, meta) -> list:
         vazias = 0
         novos = []
         for a in artigos:
+            if len(todos) >= meta:
+                break
             chave = a["titulo"].lower()[:60]
             if chave not in ids_vistos:
                 todos.append(a)
@@ -269,8 +273,10 @@ def buscar_tudo(sessao, query, meta) -> list:
                 ids_vistos.add(chave)
 
         if novos:
-            _append_csv(novos, primeiro=(not META_FILE.exists() and pagina == inicio_pag))
             salvar_progresso(pagina + 1, len(todos), list(ids_vistos))
+            # Salva JSON intermediário para retomada
+            with open(JSON_FILE, "w", encoding="utf-8") as f:
+                json.dump(todos, f, ensure_ascii=False, indent=2)
             log.info(f"  ✔ +{len(novos)} | Total: {len(todos)}")
         else:
             log.info(f"  Nenhum novo (duplicatas)")
@@ -281,34 +287,6 @@ def buscar_tudo(sessao, query, meta) -> list:
         time.sleep(espera)
 
     return todos
-
-
-# ──────────────────────────────────────────────────────────────
-# CSV / JSON
-# ──────────────────────────────────────────────────────────────
-def _append_csv(artigos, primeiro=False):
-    if not artigos:
-        return
-    with open(META_FILE, "w" if primeiro else "a",
-              newline="", encoding="utf-8-sig") as f:
-        w = csv.DictWriter(f, fieldnames=CAMPOS, extrasaction="ignore")
-        if primeiro:
-            w.writeheader()
-        w.writerows(artigos)
-
-def salvar_csv_final(artigos):
-    ordenados = sorted(artigos,
-                       key=lambda a: int(a.get("ano") or 0),
-                       reverse=True)
-    with open(META_FILE, "w", newline="", encoding="utf-8-sig") as f:
-        w = csv.DictWriter(f, fieldnames=CAMPOS, extrasaction="ignore")
-        w.writeheader()
-        w.writerows(ordenados)
-    log.info(f"CSV final: {len(ordenados)} artigos → {META_FILE}")
-
-def salvar_json(artigos):
-    with open(JSON_FILE, "w", encoding="utf-8") as f:
-        json.dump(artigos, f, ensure_ascii=False, indent=2)
 
 
 # ──────────────────────────────────────────────────────────────
@@ -339,6 +317,8 @@ def baixar_todos_pdfs(sessao, artigos):
     salvos = 0
     for idx, artigo in enumerate(tqdm(artigos, desc="PDFs"), 1):
         if not artigo.get("pdf_url"):
+            # Sem PDF disponível — marca link para acesso manual
+            artigo["acesso_manual"] = artigo.get("link", "")
             continue
         destino = PDF_DIR / nome_seguro(artigo["titulo"], idx)
         if destino.exists():
@@ -347,37 +327,129 @@ def baixar_todos_pdfs(sessao, artigos):
             continue
         if baixar_pdf(sessao, artigo["pdf_url"], destino):
             artigo["pdf_local"] = str(destino.resolve())
+            artigo["acesso_manual"] = ""
             salvos += 1
             log.info(f"  ✔ {destino.name}")
+        else:
+            # Tinha link mas falhou — marca para acesso manual
+            artigo["acesso_manual"] = artigo.get("link", "")
         time.sleep(random.uniform(2, 6))
-    log.info(f"PDFs salvos: {salvos}")
+    log.info(f"PDFs salvos: {salvos} | Acesso manual necessário: {len(artigos) - salvos}")
     return artigos
+
+
+# ──────────────────────────────────────────────────────────────
+# SALVAR XLSX COM CORES
+# ──────────────────────────────────────────────────────────────
+def salvar_xlsx(artigos):
+    try:
+        from openpyxl import Workbook
+        from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+        from openpyxl.utils import get_column_letter
+    except ImportError:
+        log.error("openpyxl não instalado: pip install openpyxl")
+        return
+
+    ordenados = sorted(artigos, key=lambda a: int(a.get("ano") or 0), reverse=True)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Artigos"
+
+    # Cabeçalho
+    cabecalhos = ["#", "Título", "Autores", "Fonte", "Ano", "Citações",
+                  "Resumo", "Link", "PDF URL", "PDF Local", "Acesso Manual"]
+    header_fill = PatternFill("solid", fgColor="2E75B6")
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    thin = Side(style="thin", color="CCCCCC")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    for col, cab in enumerate(cabecalhos, 1):
+        cell = ws.cell(row=1, column=col, value=cab)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.border = border
+    ws.row_dimensions[1].height = 30
+
+    # Cores
+    amarelo  = PatternFill("solid", fgColor="FFF2CC")  # sem PDF — acesso manual
+    verde    = PatternFill("solid", fgColor="E2EFDA")  # PDF baixado
+    branco   = PatternFill("solid", fgColor="FFFFFF")
+
+    for i, a in enumerate(ordenados, 2):
+        tem_pdf     = bool(a.get("pdf_local"))
+        precisa_manual = bool(a.get("acesso_manual"))
+
+        fill = verde if tem_pdf else (amarelo if precisa_manual else branco)
+
+        valores = [
+            i - 1,
+            a.get("titulo", ""),
+            a.get("autores", ""),
+            a.get("fonte", ""),
+            a.get("ano", ""),
+            a.get("citacoes", 0),
+            a.get("resumo", ""),
+            a.get("link", ""),
+            a.get("pdf_url", ""),
+            a.get("pdf_local", ""),
+            a.get("acesso_manual", ""),
+        ]
+
+        for col, val in enumerate(valores, 1):
+            cell = ws.cell(row=i, column=col, value=val)
+            cell.fill = fill
+            cell.border = border
+            cell.alignment = Alignment(vertical="top", wrap_text=(col in [2, 3, 7]))
+
+    # Larguras das colunas
+    larguras = [5, 50, 30, 25, 8, 10, 60, 40, 40, 40, 40]
+    for col, larg in enumerate(larguras, 1):
+        ws.column_dimensions[get_column_letter(col)].width = larg
+
+    # Legenda
+    ws_leg = wb.create_sheet("Legenda")
+    ws_leg["A1"] = "Cor"
+    ws_leg["B1"] = "Significado"
+    ws_leg["A2"].fill = verde
+    ws_leg["A2"] = "Verde"
+    ws_leg["B2"] = "PDF baixado automaticamente — arquivo na pasta pdfs/"
+    ws_leg["A3"].fill = amarelo
+    ws_leg["A3"] = "Amarelo"
+    ws_leg["B3"] = "Sem PDF — acesso manual necessário (clique no link da coluna 'Acesso Manual')"
+    ws_leg["A4"].fill = branco
+    ws_leg["A4"] = "Branco"
+    ws_leg["B4"] = "Sem link disponível"
+    for col in ["A", "B"]:
+        ws_leg.column_dimensions[col].width = 30
+
+    wb.save(XLSX_FILE)
+    log.info(f"Excel salvo: {XLSX_FILE}")
 
 
 # ──────────────────────────────────────────────────────────────
 # CLI
 # ──────────────────────────────────────────────────────────────
 def main():
-    parser = argparse.ArgumentParser(
-        description='Coleta Scholar — "geotecnologias" e "ensino médio integrado"'
-    )
+    parser = argparse.ArgumentParser()
     parser.add_argument("-q", "--query", required=True)
-    parser.add_argument("-n", "--numero", type=int, default=120,
-                        help="Meta de artigos (padrão: 120, Scholar tem ~111)")
+    parser.add_argument("-n", "--numero", type=int, default=111)
     parser.add_argument("--proxy")
     parser.add_argument("--sem-pdf", action="store_true")
     parser.add_argument("--resetar", action="store_true")
     args = parser.parse_args()
 
     if args.resetar:
-        for f in [PROGRESSO, META_FILE]:
+        for f in [PROGRESSO, JSON_FILE, XLSX_FILE]:
             if f.exists():
                 f.unlink()
         log.info("Resetado.")
 
     log.info("=" * 60)
     log.info(f"Query  : {args.query}")
-    log.info(f"Meta   : {args.numero} artigos (~111 disponíveis no Scholar)")
+    log.info(f"Filtro : até 2025")
+    log.info(f"Meta   : {args.numero} artigos")
     log.info("=" * 60)
 
     sessao  = criar_sessao(proxy=args.proxy)
@@ -386,24 +458,24 @@ def main():
     if not args.sem_pdf:
         artigos = baixar_todos_pdfs(sessao, artigos)
 
-    salvar_csv_final(artigos)
-    salvar_json(artigos)
+    salvar_xlsx(artigos)
 
-    por_ano = {}
-    for a in artigos:
-        ano = a.get("ano") or "sem ano"
-        por_ano[ano] = por_ano.get(ano, 0) + 1
+    # JSON final
+    with open(JSON_FILE, "w", encoding="utf-8") as f:
+        json.dump(artigos, f, ensure_ascii=False, indent=2)
 
-    pdfs_ok = sum(1 for a in artigos if a.get("pdf_local"))
+    pdfs_ok      = sum(1 for a in artigos if a.get("pdf_local"))
+    manual       = sum(1 for a in artigos if a.get("acesso_manual"))
+    sem_link     = len(artigos) - pdfs_ok - manual
 
     print(f"\n{'='*50}")
     print(f"✅ Concluído!")
     print(f"   Artigos coletados : {len(artigos)}")
-    print(f"   PDFs baixados     : {pdfs_ok}")
+    print(f"   🟢 PDFs baixados  : {pdfs_ok}")
+    print(f"   🟡 Acesso manual  : {manual}  ← links no Excel, coluna 'Acesso Manual'")
+    print(f"   ⚪ Sem link       : {sem_link}")
     print(f"   Pasta de saída    : {OUTPUT_DIR.resolve()}")
-    print(f"\n   Por ano:")
-    for ano in sorted(por_ano.keys(), reverse=True):
-        print(f"   └─ {ano}: {por_ano[ano]}")
+    print(f"   Planilha Excel    : {XLSX_FILE.resolve()}")
     print(f"{'='*50}")
 
 if __name__ == "__main__":
