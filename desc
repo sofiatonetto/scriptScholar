@@ -2,7 +2,7 @@ pip install openpyxl --break-system-packages
 
 python3 scholar_geo_emi.py -q '"geotecnologias" "ensino médio integrado"' -n 111 --resetar
 
-
+pip3 install openpyxl
 
 
 ("Geotecnologias" OR "Sistemas de Informação Geográfica" OR "Geoprocessamento” OR "Sensoriamento Remoto") AND ("Educação Profissional" OR "Ensino Técnico" OR “Ensino Médio Integrado” OR “Escola Técnica”)
