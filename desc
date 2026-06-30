@@ -9,6 +9,9 @@ bash: erro de sintaxe próximo ao token inesperado `)'
 python3 scholar_2025.py -q '("Geotecnologias" OR "Sistemas de Informação Geográfica" OR "Geoprocessamento" OR "Sensoriamento Remoto") AND ("Educação Profissional" OR "Ensino Técnico" OR "Ensino Médio Integrado" OR "Escola Técnica")' -n 458
 
 
+python3 scriptt2.py -q '("Geotecnologias" OR "Sistemas de Informação Geográfica" OR "Geoprocessamento" OR "Sensoriamento Remoto") AND ("Educação Profissional" OR "Ensino Técnico" OR "Ensino Médio Integrado" OR "Escola Técnica")' -n 200
+
+
 
  python3 scriptt2.py -q '("Geotecnologias" OR "Sistemas de Informação Geográfica" OR "Geoprocessamento" OR "Sensoriamento Remoto") AND ("Educação Profissional" OR "Ensino Técnico" OR "Ensino Médio Integrado" OR "Escola Técnica")' -n 458
 2026-06-26 08:38:46,614 [INFO] ============================================================
